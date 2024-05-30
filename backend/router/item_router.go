@@ -12,4 +12,6 @@ func SetupItemRoutes(router fiber.Router) {
 	items.Get("/", handlers.GetItems)
 	items.Get("/:kode", handlers.GetItem)
 	items.Post("/", handlers.CreateItem)
+	items.Put("/:kode", handlers.UpdateItem)
+	items.Delete("/:kode", handlers.DeleteItem)
 }
