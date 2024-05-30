@@ -8,5 +8,5 @@ type Item struct {
 	Nama      string `json:"nama" gorm:"type:varchar(20); not null"`
 	Jumlah    uint   `json:"jumlah" gorm:"type: int"`
 	Deskripsi string `json:"deskripsi" gorm:"type:text"`
-	Status    bool
+	Status    bool   `gorm:"default:true"`
 }
