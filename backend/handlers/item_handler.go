@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"stock-manager/database"
 	"stock-manager/models"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
@@ -64,6 +66,13 @@ func CreateItem(c *fiber.Ctx) error {
 	err = db.Create(&item).Error
 
 	if err != nil {
+		var psqlErr *pgconn.PgError
+		if errors.As(err, &psqlErr) && psqlErr.Code == "23505" {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  false,
+				"message": "Kode item telah terdaftar",
+			})
+		}
 		return c.Status(500).JSON(fiber.Map{
 			"status": false,
 		})
