@@ -5,6 +5,7 @@ import (
 	"stock-manager/models"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 func GetItems(c *fiber.Ctx) error {
@@ -23,6 +24,28 @@ func GetItems(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status": true,
 		"data":   items,
+	})
+}
+
+func GetItem(c *fiber.Ctx) error {
+	db := database.Db
+	var item models.Item
+
+	kode := c.Params("kode")
+
+	err := db.First(&item, "kode = ?", kode).Error
+
+	if err != nil && err == gorm.ErrRecordNotFound {
+		return c.Status(404).JSON(fiber.Map{
+			"status": false,
+			"error":  "Item not found",
+			"data":   nil,
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": true,
+		"data":   item,
 	})
 }
 
