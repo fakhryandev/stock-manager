@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"stock-manager/database"
 	"stock-manager/models"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -35,13 +36,14 @@ func GetItem(c *fiber.Ctx) error {
 	var item models.Item
 
 	kode := c.Params("code")
+	kode = strings.ToUpper(kode)
 
-	err := db.First(&item, "kode = ?", kode).Error
+	err := db.First(&item, "kode = ?", &kode).Error
 
 	if err != nil && err == gorm.ErrRecordNotFound {
 		return c.Status(404).JSON(fiber.Map{
 			"status": false,
-			"error":  "Item not found",
+			"error":  "Item tidak ditemukan",
 			"data":   nil,
 		})
 	}
@@ -63,6 +65,7 @@ func CreateItem(c *fiber.Ctx) error {
 		})
 	}
 
+	item.Kode = strings.ToUpper(item.Kode)
 	err = db.Create(&item).Error
 
 	if err != nil {
@@ -70,7 +73,7 @@ func CreateItem(c *fiber.Ctx) error {
 		if errors.As(err, &psqlErr) && psqlErr.Code == "23505" {
 			return c.Status(400).JSON(fiber.Map{
 				"status":  false,
-				"message": "Item is exist",
+				"message": "Gagal, kode item sudah ada.",
 			})
 		}
 		return c.Status(500).JSON(fiber.Map{
@@ -95,6 +98,7 @@ func UpdateItem(c *fiber.Ctx) error {
 	var item models.Item
 
 	kode := c.Params("code")
+	kode = strings.ToUpper(kode)
 
 	err := db.Find(&item, "kode = ?", kode).Error
 
@@ -134,6 +138,7 @@ func DeleteItem(c *fiber.Ctx) error {
 	var item models.Item
 
 	kode := c.Params("code")
+	kode = strings.ToUpper(kode)
 
 	err := db.Find(&item, "kode = ?", kode).Error
 
@@ -166,6 +171,7 @@ func IncreaseItem(c *fiber.Ctx) error {
 	var item models.Item
 
 	kode := c.Params("code")
+	kode = strings.ToUpper(kode)
 
 	err := db.Find(&item, "kode = ?", kode).Error
 
@@ -206,6 +212,7 @@ func DecreaseItem(c *fiber.Ctx) error {
 	var item models.Item
 
 	kode := c.Params("code")
+	kode = strings.ToUpper(kode)
 
 	err := db.Find(&item, "kode = ?", kode).Error
 
