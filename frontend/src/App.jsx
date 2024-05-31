@@ -52,8 +52,15 @@ function App() {
       );
 
       console.log(response);
+
+      const updatedItem = response.data.data;
+      setItems((prevItems) =>
+        prevItems.map((item) => (item.kode === kode ? updatedItem : item))
+      );
     } catch (error) {
       console.log(error);
+      const message = error.response.data.message;
+      alert(message);
     }
   };
 

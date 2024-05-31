@@ -215,6 +215,7 @@ func IncreaseItem(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status":  true,
 		"message": "Jumlah stok berhasil ditambahkan.",
+		"data":    item,
 	})
 }
 
@@ -266,5 +267,6 @@ func DecreaseItem(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status":  true,
 		"message": "Jumlah stok berhasil dikurangi.",
+		"data":    item,
 	})
 }

@@ -16,6 +16,12 @@ const ItemForm = ({ addItem }) => {
       deskripsi,
       isAktif,
     });
+
+    setKode('');
+    setNama('');
+    setJumlah(0);
+    setDeskripsi('');
+    setIsAktif(true);
   };
 
   return (
