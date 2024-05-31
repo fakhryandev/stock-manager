@@ -10,8 +10,9 @@ func SetupItemRoutes(router fiber.Router) {
 	items := router.Group("/item")
 
 	items.Get("/", handlers.GetItems)
-	items.Get("/:kode", handlers.GetItem)
+	items.Get("/:code", handlers.GetItem)
 	items.Post("/", handlers.CreateItem)
-	items.Put("/:kode", handlers.UpdateItem)
-	items.Delete("/:kode", handlers.DeleteItem)
+	items.Put("/:code", handlers.UpdateItem)
+	items.Delete("/:code", handlers.DeleteItem)
+	items.Patch("/:code/increase", handlers.IncreaseItem)
 }

@@ -34,7 +34,7 @@ func GetItem(c *fiber.Ctx) error {
 	db := database.Db
 	var item models.Item
 
-	kode := c.Params("kode")
+	kode := c.Params("code")
 
 	err := db.First(&item, "kode = ?", kode).Error
 
@@ -70,7 +70,7 @@ func CreateItem(c *fiber.Ctx) error {
 		if errors.As(err, &psqlErr) && psqlErr.Code == "23505" {
 			return c.Status(400).JSON(fiber.Map{
 				"status":  false,
-				"message": "Kode item telah terdaftar",
+				"message": "Item is exist",
 			})
 		}
 		return c.Status(500).JSON(fiber.Map{
@@ -94,7 +94,7 @@ func UpdateItem(c *fiber.Ctx) error {
 	db := database.Db
 	var item models.Item
 
-	kode := c.Params("kode")
+	kode := c.Params("code")
 
 	err := db.Find(&item, "kode = ?", kode).Error
 
@@ -133,7 +133,7 @@ func DeleteItem(c *fiber.Ctx) error {
 	db := database.Db
 	var item models.Item
 
-	kode := c.Params("kode")
+	kode := c.Params("code")
 
 	err := db.Find(&item, "kode = ?", kode).Error
 
@@ -154,5 +154,45 @@ func DeleteItem(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status":  true,
 		"message": fmt.Sprintf("Success delete item %s", kode),
+	})
+}
+
+func IncreaseItem(c *fiber.Ctx) error {
+	type updateAmountItem struct {
+		Jumlah uint `json:"jumlah"`
+	}
+
+	db := database.Db
+	var item models.Item
+
+	kode := c.Params("code")
+
+	err := db.Find(&item, "kode = ?", kode).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.Status(404).JSON(fiber.Map{
+				"status": false,
+				"error":  "Item not found",
+				"data":   nil,
+			})
+		}
+	}
+
+	var updateAmountItemData updateAmountItem
+	err = c.BodyParser(&updateAmountItemData)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"status": false,
+		})
+	}
+
+	item.Jumlah = item.Jumlah + uint(updateAmountItemData.Jumlah)
+
+	db.Save(&item)
+
+	return c.JSON(fiber.Map{
+		"status": true,
 	})
 }
