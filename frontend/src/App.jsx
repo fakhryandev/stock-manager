@@ -55,6 +55,9 @@ function App() {
 
   return (
     <>
+      <header className="p-4 bg-slate-900">
+        <h1 className="text-3xl text-white">Stock Manager</h1>
+      </header>
       <ItemForm addItem={addItem} />
       <ItemList
         items={items}
