@@ -15,4 +15,5 @@ func SetupItemRoutes(router fiber.Router) {
 	items.Put("/:code", handlers.UpdateItem)
 	items.Delete("/:code", handlers.DeleteItem)
 	items.Patch("/:code/increase", handlers.IncreaseItem)
+	items.Patch("/:code/decrease", handlers.DecreaseItem)
 }

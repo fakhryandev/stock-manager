@@ -196,3 +196,52 @@ func IncreaseItem(c *fiber.Ctx) error {
 		"status": true,
 	})
 }
+
+func DecreaseItem(c *fiber.Ctx) error {
+	type updateAmountItem struct {
+		Jumlah uint `json:"jumlah"`
+	}
+
+	db := database.Db
+	var item models.Item
+
+	kode := c.Params("code")
+
+	err := db.Find(&item, "kode = ?", kode).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.Status(404).JSON(fiber.Map{
+				"status": false,
+				"error":  "Item not found",
+				"data":   nil,
+			})
+		}
+	}
+
+	var updateAmountItemData updateAmountItem
+	err = c.BodyParser(&updateAmountItemData)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"status": false,
+		})
+	}
+
+	amountNow := item.Jumlah - uint(updateAmountItemData.Jumlah)
+
+	if int(amountNow) < 0 {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  false,
+			"message": "Total stok yang dikurangi tidak boleh kurang dari 0",
+		})
+	}
+
+	item.Jumlah = amountNow
+
+	db.Save(&item)
+
+	return c.JSON(fiber.Map{
+		"status": true,
+	})
+}
