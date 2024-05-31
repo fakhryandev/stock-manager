@@ -88,12 +88,15 @@ func CreateItem(c *fiber.Ctx) error {
 			})
 		}
 		return c.Status(500).JSON(fiber.Map{
-			"status": false,
+			"status":  false,
+			"message": err.Error(),
 		})
 	}
 
 	return c.JSON(fiber.Map{
-		"status": true,
+		"status":  true,
+		"message": "Sukses, data berhasil ditambahkan",
+		"data":    item,
 	})
 }
 
@@ -117,7 +120,7 @@ func UpdateItem(c *fiber.Ctx) error {
 		if err == gorm.ErrRecordNotFound {
 			return c.Status(404).JSON(fiber.Map{
 				"status": false,
-				"error":  "Item not found",
+				"error":  "Item tidak ditemukan",
 				"data":   nil,
 			})
 		}
@@ -127,7 +130,8 @@ func UpdateItem(c *fiber.Ctx) error {
 	err = c.BodyParser(&updateItemData)
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{
-			"status": false,
+			"status":  false,
+			"message": err.Error(),
 		})
 	}
 
@@ -163,9 +167,7 @@ func DeleteItem(c *fiber.Ctx) error {
 		}
 	}
 
-	item.Status = false
-
-	db.Save(&item)
+	db.Delete(&item)
 
 	return c.JSON(fiber.Map{
 		"status":  true,
@@ -190,7 +192,7 @@ func IncreaseItem(c *fiber.Ctx) error {
 		if err == gorm.ErrRecordNotFound {
 			return c.Status(404).JSON(fiber.Map{
 				"status": false,
-				"error":  "Item not found",
+				"error":  "Item tidak ditemukan",
 				"data":   nil,
 			})
 		}
@@ -201,7 +203,8 @@ func IncreaseItem(c *fiber.Ctx) error {
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{
-			"status": false,
+			"status":  false,
+			"message": err.Error(),
 		})
 	}
 
@@ -210,7 +213,8 @@ func IncreaseItem(c *fiber.Ctx) error {
 	db.Save(&item)
 
 	return c.JSON(fiber.Map{
-		"status": true,
+		"status":  true,
+		"message": "Jumlah stok berhasil ditambahkan.",
 	})
 }
 
@@ -231,7 +235,7 @@ func DecreaseItem(c *fiber.Ctx) error {
 		if err == gorm.ErrRecordNotFound {
 			return c.Status(404).JSON(fiber.Map{
 				"status": false,
-				"error":  "Item not found",
+				"error":  "Item tidak ditemukan",
 				"data":   nil,
 			})
 		}
@@ -260,6 +264,7 @@ func DecreaseItem(c *fiber.Ctx) error {
 	db.Save(&item)
 
 	return c.JSON(fiber.Map{
-		"status": true,
+		"status":  true,
+		"message": "Jumlah stok berhasil dikurangi.",
 	})
 }
