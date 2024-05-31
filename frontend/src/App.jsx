@@ -17,20 +17,50 @@ function App() {
   };
 
   const addItem = async (itemData) => {
-    const { isAktif, jumlah } = itemData;
+    try {
+      const { isAktif, jumlah } = itemData;
+      const body = {
+        ...itemData,
+        status: isAktif,
+        jumlah: parseInt(jumlah),
+      };
+      const response = await axios.post(`http://localhost:8080/api/item`, body);
+    } catch (error) {
+      console.log(error);
+      console.log(error);
+      // alert(error);
+    }
+  };
+
+  const changeQuantity = async (type, quantity, kode) => {
+    const typeRequest = type ? 'increase' : 'decrease';
     const body = {
-      ...itemData,
-      status: isAktif,
-      jumlah: parseInt(jumlah),
+      jumlah: parseInt(quantity),
     };
-    const response = await axios.post(`http://localhost:8080/api/item`, body);
-    const { status } = response.data;
+    const response = await axios.patch(
+      `http://localhost:8080/api/item/${kode}/${typeRequest}`,
+      body
+    );
+
+    console.log(response);
+  };
+
+  const deleteItem = async (kode) => {
+    const response = await axios.delete(
+      `http://localhost:8080/api/item/${kode}`
+    );
+
+    console.log(response);
   };
 
   return (
     <>
       <ItemForm addItem={addItem} />
-      <ItemList items={items} />
+      <ItemList
+        items={items}
+        changeQuantity={changeQuantity}
+        deleteItem={deleteItem}
+      />
     </>
   );
 }
