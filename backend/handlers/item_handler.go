@@ -7,6 +7,7 @@ import (
 	"stock-manager/models"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
@@ -62,6 +63,16 @@ func CreateItem(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"status": false,
+		})
+	}
+
+	validate := validator.New()
+	err = validate.Struct(item)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  false,
+			"message": err.Error(),
 		})
 	}
 
