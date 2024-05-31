@@ -4,22 +4,21 @@ import ItemForm from './components/ItemForm';
 import axios from 'axios';
 
 function App() {
-  const [items, setItems] = useState([
-    {
-      kode: 'a1',
-      nama: 'test',
-      jumlah: 20,
-    },
-  ]);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getItems();
   }, []);
 
   const getItems = async () => {
-    const response = await axios.get(`http://localhost:8080/api/item`);
-    const data = response.data.data;
-    setItems(data);
+    try {
+      const response = await axios.get(`http://localhost:8080/api/item`);
+      const data = response.data.data;
+      setItems(data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const addItem = async (itemData) => {
@@ -31,32 +30,43 @@ function App() {
         jumlah: parseInt(jumlah),
       };
       const response = await axios.post(`http://localhost:8080/api/item`, body);
+      setItems([...items, body]);
+      const message = response.data.message;
+      alert(message);
     } catch (error) {
       console.log(error);
-      console.log(error);
-      // alert(error);
+      const errMessage = error.response.data.message;
+      alert(errMessage);
     }
   };
 
   const changeQuantity = async (type, quantity, kode) => {
-    const typeRequest = type ? 'increase' : 'decrease';
-    const body = {
-      jumlah: parseInt(quantity),
-    };
-    const response = await axios.patch(
-      `http://localhost:8080/api/item/${kode}/${typeRequest}`,
-      body
-    );
+    try {
+      const typeRequest = type ? 'increase' : 'decrease';
+      const body = {
+        jumlah: parseInt(quantity),
+      };
+      const response = await axios.patch(
+        `http://localhost:8080/api/item/${kode}/${typeRequest}`,
+        body
+      );
 
-    console.log(response);
+      console.log(response);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const deleteItem = async (kode) => {
-    const response = await axios.delete(
-      `http://localhost:8080/api/item/${kode}`
-    );
+    try {
+      const response = await axios.delete(
+        `http://localhost:8080/api/item/${kode}`
+      );
 
-    console.log(response);
+      setItems((prevItems) => prevItems.filter((item) => item.kode !== kode));
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -69,6 +79,7 @@ function App() {
         items={items}
         changeQuantity={changeQuantity}
         deleteItem={deleteItem}
+        isLoading={loading}
       />
     </>
   );

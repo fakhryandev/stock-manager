@@ -1,4 +1,4 @@
-const ItemList = ({ items, changeQuantity, deleteItem }) => {
+const ItemList = ({ items, changeQuantity, deleteItem, isLoading }) => {
   const changeQuantityHandler = (type, kode) => {
     const typeText = type ? 'Masuk' : 'Keluar';
     const quantity = prompt(`Masukkan jumlah barang ${typeText}`);
@@ -10,14 +10,16 @@ const ItemList = ({ items, changeQuantity, deleteItem }) => {
     <div className="container mx-auto mt-5">
       <h2 className="text-2xl mb-4">Item List</h2>
 
-      {items.length === 0 ? (
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : items.length === 0 ? (
         <p className="text-sm">Tidak Ada Item</p>
       ) : (
         <ul>
           {items.map((item, index) => (
             <div
               key={index}
-              className="flex items-center py-4 px-6 border rounded-md justify-between"
+              className="flex items-center py-4 px-6 border rounded-md justify-between mb-3"
             >
               <p className="text-lg">
                 Kode: {item.kode.toUpperCase()} - Nama: {item.nama} - Jumlah: (
