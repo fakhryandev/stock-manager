@@ -4,7 +4,13 @@ import ItemForm from './components/ItemForm';
 import axios from 'axios';
 
 function App() {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState([
+    {
+      kode: 'a1',
+      nama: 'test',
+      jumlah: 20,
+    },
+  ]);
 
   useEffect(() => {
     getItems();
