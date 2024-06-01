@@ -305,17 +305,18 @@ func ImportFile(c *fiber.Ctx) error {
 	for _, record := range records[1:] {
 		operation := "insert"
 		jumlah, _ := strconv.Atoi(record[3])
+		status, _ := strconv.ParseBool(record[4])
 
-		if len(record) > 4 {
-			if record[4] == "edit" {
+		if len(record) > 5 {
+			if record[5] == "edit" {
 				operation = "edit"
 			}
 
-			if record[4] == "tambah" {
+			if record[5] == "tambah" {
 				operation = "tambah"
 			}
 
-			if record[4] == "kurang" {
+			if record[5] == "kurang" {
 				operation = "kurang"
 			}
 
@@ -341,6 +342,7 @@ func ImportFile(c *fiber.Ctx) error {
 			item.Nama = record[1]
 			item.Deskripsi = record[2]
 			item.Jumlah = uint(jumlah)
+			item.Status = status
 
 			tx.Save(&item)
 
@@ -401,6 +403,7 @@ func ImportFile(c *fiber.Ctx) error {
 				Nama:      record[1],
 				Deskripsi: record[2],
 				Jumlah:    uint(jumlah),
+				Status:    status,
 			}
 
 			if err := tx.Create(&newItem).Error; err != nil {
