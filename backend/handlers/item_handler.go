@@ -305,16 +305,20 @@ func ImportFile(c *fiber.Ctx) error {
 	for _, record := range records[1:] {
 		operation := "insert"
 		jumlah, _ := strconv.Atoi(record[3])
-		if record[4] == "edit" {
-			operation = "edit"
-		}
 
-		if record[4] == "tambah" {
-			operation = "tambah"
-		}
+		if len(record) > 4 {
+			if record[4] == "edit" {
+				operation = "edit"
+			}
 
-		if record[4] == "kurang" {
-			operation = "kurang"
+			if record[4] == "tambah" {
+				operation = "tambah"
+			}
+
+			if record[4] == "kurang" {
+				operation = "kurang"
+			}
+
 		}
 
 		if operation == "edit" {
