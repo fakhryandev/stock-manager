@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"encoding/csv"
 	"errors"
 	"fmt"
+	"io"
 	"stock-manager/database"
 	"stock-manager/models"
+	"strconv"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -269,4 +272,121 @@ func DecreaseItem(c *fiber.Ctx) error {
 		"message": "Jumlah stok berhasil dikurangi.",
 		"data":    item,
 	})
+}
+
+func ImportFile(c *fiber.Ctx) error {
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  false,
+			"message": "Gagal mendapatkan file",
+		})
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  false,
+			"message": "Gagal membuka file csv",
+		})
+	}
+	defer file.Close()
+
+	csvReader := csv.NewReader(file)
+	records, err := readCSV(csvReader)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  false,
+			"message": "Gagal membaca file csv",
+		})
+	}
+
+	tx := database.Db.Begin()
+	for _, record := range records[1:] {
+		operation := "insert"
+		jumlah, _ := strconv.Atoi(record[3])
+		if record[4] == "edit" {
+			operation = "edit"
+		}
+
+		if record[4] == "tambah" {
+			operation = "tambah"
+		}
+
+		if record[4] == "kurang" {
+			operation = "kurang"
+		}
+
+		if operation == "edit" {
+			var item models.Item
+			kode := record[0]
+			tx.Find(&item, "kode = ?", kode)
+
+			item.Nama = record[1]
+			item.Deskripsi = record[2]
+			item.Jumlah = uint(jumlah)
+
+			tx.Save(&item)
+
+		} else if operation == "tambah" {
+			var item models.Item
+			kode := record[0]
+			tx.Find(&item, "kode = ?", kode)
+
+			item.Jumlah = item.Jumlah + uint(jumlah)
+			tx.Save(&item)
+
+		} else if operation == "kurang" {
+			var item models.Item
+			kode := record[0]
+			tx.Find(&item, "kode = ?", kode)
+
+			item.Jumlah = item.Jumlah - uint(jumlah)
+			tx.Save(&item)
+		} else {
+			newItem := models.Item{
+				Kode:      record[0],
+				Nama:      record[1],
+				Deskripsi: record[2],
+				Jumlah:    uint(jumlah),
+			}
+
+			if err := tx.Create(&newItem).Error; err != nil {
+				tx.Rollback()
+				var psqlErr *pgconn.PgError
+				if errors.As(err, &psqlErr) && psqlErr.Code == "23505" {
+					return c.Status(400).JSON(fiber.Map{
+						"status":  false,
+						"message": "Gagal, kode item terduplikasi.",
+					})
+				}
+				return c.Status(500).JSON(fiber.Map{
+					"status":  false,
+					"message": err.Error(),
+				})
+			}
+		}
+
+	}
+
+	tx.Commit()
+
+	return c.JSON(fiber.Map{
+		"status": true,
+	})
+}
+
+func readCSV(reader *csv.Reader) ([][]string, error) {
+	var records [][]string
+	for {
+		record, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		records = append(records, record)
+	}
+	return records, nil
 }
