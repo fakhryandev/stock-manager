@@ -117,7 +117,7 @@ func UpdateItem(c *fiber.Ctx) error {
 	kode := c.Params("code")
 	kode = strings.ToUpper(kode)
 
-	err := db.Find(&item, "kode = ?", kode).Error
+	err := db.First(&item, "kode = ?", kode).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -158,7 +158,7 @@ func DeleteItem(c *fiber.Ctx) error {
 	kode := c.Params("code")
 	kode = strings.ToUpper(kode)
 
-	err := db.Find(&item, "kode = ?", kode).Error
+	err := db.First(&item, "kode = ?", kode).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -189,7 +189,7 @@ func IncreaseItem(c *fiber.Ctx) error {
 	kode := c.Params("code")
 	kode = strings.ToUpper(kode)
 
-	err := db.Find(&item, "kode = ?", kode).Error
+	err := db.First(&item, "kode = ?", kode).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -233,7 +233,7 @@ func DecreaseItem(c *fiber.Ctx) error {
 	kode := c.Params("code")
 	kode = strings.ToUpper(kode)
 
-	err := db.Find(&item, "kode = ?", kode).Error
+	err := db.First(&item, "kode = ?", kode).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -320,7 +320,19 @@ func ImportFile(c *fiber.Ctx) error {
 		if operation == "edit" {
 			var item models.Item
 			kode := record[0]
-			tx.Find(&item, "kode = ?", kode)
+			kode = strings.ToUpper(kode)
+			err := tx.First(&item, "kode = ?", kode).Error
+
+			if err != nil {
+				tx.Rollback()
+				if err == gorm.ErrRecordNotFound {
+					return c.Status(404).JSON(fiber.Map{
+						"status": false,
+						"error":  fmt.Sprintf("Item dengan kode %s tidak ditemukan. seluruh data dikembalikan", kode),
+						"data":   nil,
+					})
+				}
+			}
 
 			item.Nama = record[1]
 			item.Deskripsi = record[2]
@@ -331,7 +343,20 @@ func ImportFile(c *fiber.Ctx) error {
 		} else if operation == "tambah" {
 			var item models.Item
 			kode := record[0]
-			tx.Find(&item, "kode = ?", kode)
+			kode = strings.ToUpper(kode)
+
+			err := tx.First(&item, "kode = ?", kode).Error
+
+			if err != nil {
+				tx.Rollback()
+				if err == gorm.ErrRecordNotFound {
+					return c.Status(404).JSON(fiber.Map{
+						"status": false,
+						"error":  fmt.Sprintf("Item dengan kode %s tidak ditemukan. seluruh data dikembalikan", kode),
+						"data":   nil,
+					})
+				}
+			}
 
 			item.Jumlah = item.Jumlah + uint(jumlah)
 			tx.Save(&item)
@@ -339,9 +364,32 @@ func ImportFile(c *fiber.Ctx) error {
 		} else if operation == "kurang" {
 			var item models.Item
 			kode := record[0]
-			tx.Find(&item, "kode = ?", kode)
+			kode = strings.ToUpper(kode)
+
+			err := tx.First(&item, "kode = ?", kode).Error
+
+			if err != nil {
+				tx.Rollback()
+				if err == gorm.ErrRecordNotFound {
+					return c.Status(404).JSON(fiber.Map{
+						"status": false,
+						"error":  fmt.Sprintf("Item dengan kode %s tidak ditemukan. seluruh data dikembalikan", kode),
+						"data":   nil,
+					})
+				}
+			}
 
 			item.Jumlah = item.Jumlah - uint(jumlah)
+
+			if int(item.Jumlah) < 0 {
+				tx.Rollback()
+				return c.Status(400).JSON(fiber.Map{
+					"status": false,
+					"error":  fmt.Sprintf("Total item dengan kode %s tidak boleh kurang dari 0. seluruh data dikembalikan", kode),
+					"data":   nil,
+				})
+			}
+
 			tx.Save(&item)
 		} else {
 			newItem := models.Item{
